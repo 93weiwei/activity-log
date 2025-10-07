@@ -55,10 +55,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ vars.BUILD_TAG }}
           NOTE: ${{ vars.RELEASE_NOTE }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
-          # 簡單冪等等式：同名 tag 存在就刪
-          gh release view "$TAG" >/dev/null 2>&1 && gh release delete "$TAG" -y || true
-          gh release create "$TAG" build.zip --notes "$NOTE"
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 && gh release delete "$TAG" --repo "$GITHUB_REPOSITORY" -y || true
+          gh release create "$TAG" build.zip --notes "$NOTE" --repo "$GITHUB_REPOSITORY"
+
 
   deploy-staging:
     needs: deploy-dev
