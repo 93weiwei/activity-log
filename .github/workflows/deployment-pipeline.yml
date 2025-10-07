@@ -1,0 +1,99 @@
+name: CI/CD Deployment Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write   # 建立/更新 release 需要
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 若 repo 有 package.json 就跑；沒有也會 fallback 成壓縮整個專案
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install & Build (best effort)
+        run: |
+          if [ -f package.json ]; then
+            npm ci || npm install
+            npm run build || echo "No build script. Continue."
+          else
+            echo "No package.json. Skipping npm steps."
+          fi
+
+      - name: Archive build
+        run: |
+          zip -r build.zip . -x ".git/*"
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifact
+          path: build.zip
+
+  deploy-dev:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifact
+
+      - name: Release to Dev
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ vars.BUILD_TAG }}
+          NOTE: ${{ vars.RELEASE_NOTE }}
+        run: |
+          # 簡單冪等等式：同名 tag 存在就刪
+          gh release view "$TAG" >/dev/null 2>&1 && gh release delete "$TAG" -y || true
+          gh release create "$TAG" build.zip --notes "$NOTE"
+
+  deploy-staging:
+    needs: deploy-dev
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifact
+
+      - name: Release to Staging
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ vars.BUILD_TAG }}
+          NOTE: ${{ vars.RELEASE_NOTE }}
+        run: |
+          gh release view "$TAG" >/dev/null 2>&1 && gh release delete "$TAG" -y || true
+          gh release create "$TAG" build.zip --notes "$NOTE"
+
+  deploy-production:
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    environment: production   # 這裡會被 Required reviewers 擋住，需手動核准
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifact
+
+      - name: Release to Production
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ vars.BUILD_TAG }}
+          NOTE: ${{ vars.RELEASE_NOTE }}
+        run: |
+          gh release view "$TAG" >/dev/null 2>&1 && gh release delete "$TAG" -y || true
+          gh release create "$TAG" build.zip --notes "$NOTE"
