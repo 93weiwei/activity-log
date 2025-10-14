@@ -2,7 +2,7 @@ name: Build → Unit → Integration → Staging → Production
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   workflow_dispatch:
     inputs:
       force_fail:
