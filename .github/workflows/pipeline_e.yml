@@ -98,25 +98,25 @@ jobs:
     environment:
       name: Staging
       url: ${{ steps.release.outputs.html_url }}
-  steps:
-  - uses: actions/checkout@v4
+    steps:
+      - uses: actions/checkout@v4
 
-  - uses: actions/download-artifact@v4
-    with:
-      name: ${{ env.ARTIFACT_NAME }}
-      path: dist
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: dist
 
-  - name: Release to Staging
-    id: release
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    run: |
-      echo "ENV VARS (if any): DEPLOY_ENV=${{ vars.DEPLOY_ENV }}"
-      ls -R dist
-      TAG="staging-$(date +%Y%m%d-%H%M%S)"
-      gh release create -R "$GITHUB_REPOSITORY" "${TAG}" dist/** --notes "Staging release after unit+integration passed"
-      URL=$(gh release view -R "$GITHUB_REPOSITORY" "${TAG}" --json url -q .url)
-      echo "html_url=${URL}" >> $GITHUB_OUTPUT
+      - name: Release to Staging
+        id: release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "ENV VARS (if any): DEPLOY_ENV=${{ vars.DEPLOY_ENV }}"
+          ls -R dist
+          TAG="staging-$(date +%Y%m%d-%H%M%S)"
+          gh release create -R "$GITHUB_REPOSITORY" "${TAG}" dist/** --notes "Staging release after unit+integration passed"
+          URL=$(gh release view -R "$GITHUB_REPOSITORY" "${TAG}" --json url -q .url)
+          echo "html_url=${URL}" >> $GITHUB_OUTPUT
 
   deploy-production:
     runs-on: ubuntu-latest
@@ -124,26 +124,26 @@ jobs:
     environment:
       name: Production
       url: ${{ steps.release.outputs.html_url }}
-  steps:
-  - uses: actions/checkout@v4
+    steps:
+    - uses: actions/checkout@v4
 
-  - uses: actions/download-artifact@v4
-    with:
-      name: ${{ env.ARTIFACT_NAME }}
-      path: dist
+    - uses: actions/download-artifact@v4
+      with:
+        name: ${{ env.ARTIFACT_NAME }}
+        path: dist
 
-  - name: Release to Production
-    id: release
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      TEST_ENV: prod
-    run: |
-      echo "TEST_ENV=$TEST_ENV"
-      echo "ENV VARS (if any): DEPLOY_ENV=${{ vars.DEPLOY_ENV }}"
-      ls -R dist
-      TAG="prod-$(date +%Y%m%d-%H%M%S)"
-      gh release create -R "$GITHUB_REPOSITORY" "${TAG}" dist/** --notes "Production release (requires environment approval)"
-      URL=$(gh release view -R "$GITHUB_REPOSITORY" "${TAG}" --json url -q .url)
-      echo "html_url=${URL}" >> $GITHUB_OUTPUT
+    - name: Release to Production
+      id: release
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TEST_ENV: prod
+      run: |
+        echo "TEST_ENV=$TEST_ENV"
+        echo "ENV VARS (if any): DEPLOY_ENV=${{ vars.DEPLOY_ENV }}"
+        ls -R dist
+        TAG="prod-$(date +%Y%m%d-%H%M%S)"
+        gh release create -R "$GITHUB_REPOSITORY" "${TAG}" dist/** --notes "Production release (requires environment approval)"
+        URL=$(gh release view -R "$GITHUB_REPOSITORY" "${TAG}" --json url -q .url)
+        echo "html_url=${URL}" >> $GITHUB_OUTPUT
 
 
