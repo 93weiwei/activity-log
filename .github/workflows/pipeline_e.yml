@@ -29,7 +29,6 @@ jobs:
         with:
           node-version: '20'
 
-      # 👉 不再執行 npm run build；直接放一個 mock 產物
       - name: Mock Build (create dist)
         run: |
           rm -rf dist
@@ -49,10 +48,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-    # ⬇️ 一定要先 checkout，腳本和 package.json 才會在工作目錄
+    # 先 checkout，腳本和 package.json 才會在工作目錄
     - uses: actions/checkout@v4
 
-    # （可留著以符合作業「下載 artifact」的要求）
     - uses: actions/download-artifact@v4
       with:
         name: ${{ env.ARTIFACT_NAME }}
