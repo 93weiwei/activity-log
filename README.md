@@ -225,3 +225,4 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 
 ## E3 Notes
 - Added calc.mul() in playground/calc.js
+- FF demo: add a line in README
