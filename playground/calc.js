@@ -1,2 +1,3 @@
 export function add(a, b) { return a + b; }
+// E2-B: sub() doc
 export function sub(a, b) { return a - b; }
