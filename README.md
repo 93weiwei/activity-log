@@ -222,3 +222,6 @@ Thanks goes to these wonderful people: [Emoji key for contribution types](https:
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
+
+## E3 Notes
+- Added calc.mul() in playground/calc.js
